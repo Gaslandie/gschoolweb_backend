@@ -5,9 +5,9 @@ API REST du projet **G-School**.
 ## Stack technique
 
 - **Java 21**
-- **Spring Boot 3.3** (Spring Web, Spring Data JPA, Spring Security, Validation)
+- **Spring Boot 3.5** (Spring Web, Spring Data JPA, Spring Security, Validation)
 - **Maven** (avec Maven Wrapper)
-- **PostgreSQL** (base de données)
+- **PostgreSQL** (base de données, via Docker en local)
 - **Lombok**
 - **JWT** — prévu ultérieurement (non implémenté)
 
@@ -25,34 +25,64 @@ src/main/java/com/gschool/backend/
 └── GschoolBackendApplication.java
 ```
 
-## Configuration
+## Base de données (PostgreSQL via Docker)
 
-La base de données est configurée via des **variables d'environnement** (aucun
-secret n'est versionné). Valeurs par défaut dans
-[application.yml](src/main/resources/application.yml) :
+Une instance PostgreSQL locale est fournie via [docker-compose.yml](docker-compose.yml).
+Les identifiants par défaut sont des **valeurs de développement local non
+sensibles** (surchargeables par variables d'environnement).
 
-| Variable      | Défaut                                         |
-|---------------|------------------------------------------------|
-| `DB_URL`      | `jdbc:postgresql://localhost:5432/gschool`     |
-| `DB_USERNAME` | `gschool`                                       |
-| `DB_PASSWORD` | `change-me-in-env`                              |
-| `SERVER_PORT` | `8080`                                          |
-
-Exemple :
+| Élément          | Valeur par défaut |
+|------------------|-------------------|
+| Base de données  | `gschool_db`      |
+| Utilisateur      | `gschool_user`    |
+| Mot de passe     | `gschool_dev`     |
+| Port             | `5432`            |
 
 ```bash
-export DB_URL=jdbc:postgresql://localhost:5432/gschool
-export DB_USERNAME=gschool
+# Démarrer PostgreSQL en arrière-plan
+docker compose up -d
+
+# Vérifier l'état
+docker compose ps
+
+# Arrêter
+docker compose down
+
+# Arrêter et supprimer les données
+docker compose down -v
+```
+
+## Configuration
+
+La connexion à la base est configurée via des **variables d'environnement**
+(aucun secret de production n'est versionné). Valeurs par défaut dans
+[application.yml](src/main/resources/application.yml), alignées sur le
+`docker-compose.yml` :
+
+| Variable                | Défaut                                        |
+|-------------------------|-----------------------------------------------|
+| `DB_URL`                | `jdbc:postgresql://localhost:5432/gschool_db` |
+| `DB_USERNAME`           | `gschool_user`                                |
+| `DB_PASSWORD`           | `gschool_dev`                                 |
+| `SERVER_PORT`           | `8080`                                        |
+| `CORS_ALLOWED_ORIGINS`  | `http://localhost:4200`                       |
+
+Exemple de surcharge :
+
+```bash
 export DB_PASSWORD=mon_mot_de_passe
 ```
 
-> Prérequis : une base PostgreSQL `gschool` accessible. Les **tests** utilisent
-> une base H2 en mémoire et ne nécessitent pas PostgreSQL.
+> Les **tests** utilisent une base H2 en mémoire et ne nécessitent ni Docker ni
+> PostgreSQL.
 
 ## Lancer le projet
 
 ```bash
-# Démarrer l'application
+# 1. Démarrer PostgreSQL (voir section ci-dessus)
+docker compose up -d
+
+# 2. Démarrer l'application
 ./mvnw spring-boot:run
 
 # Compiler

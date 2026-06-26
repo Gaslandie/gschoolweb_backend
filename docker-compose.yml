@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gschool-postgres
+    environment:
+      # Valeurs de développement local uniquement (non sensibles).
+      # Surchargeables via variables d'environnement.
+      POSTGRES_DB: ${POSTGRES_DB:-gschool_db}
+      POSTGRES_USER: ${POSTGRES_USER:-gschool_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gschool_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - gschool_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gschool_user} -d ${POSTGRES_DB:-gschool_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  gschool_pg_data:
